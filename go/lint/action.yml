@@ -1,0 +1,36 @@
+name: 'Lint go project'
+description: 'Sets up go and runs go linters'
+inputs:
+  go-version:
+    required: false
+    description: Version of go
+    default: "1.23.x"
+  
+  golangci-lint-version:
+    required: false
+    description: Version of golangci-lint
+    default: "v1.60.2"
+  golangci-lint-concurrency:
+    required: false
+    description: Concurrency for golangci-lint
+    default: "4"
+  golangci-lint-timeout:
+    required: false
+    description: Timeout for golangci-lint
+    default: "300s"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.go-version }}
+
+    - name: Run linters
+      # golangci-lint-action: v6.1.0 (commit of tag used instead of tag to avoid tag overwrite)
+      uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86
+      with:
+        version: ${{ inputs.golangci-lint-version }}
+        # Extended timeout to ensure all the linters are installed before it hits
+        args: --concurrency ${{ inputs.golangci-lint-concurrency }} --exclude-use-default=false --timeout=${{ inputs.golangci-lint-timeout }} -c ${{ github.action_path }}/.golangci.yml
