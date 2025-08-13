@@ -1,0 +1,24 @@
+name: 'Lint Swift project'
+description: 'Sets up Swift and runs SwiftLint'
+inputs:
+  swift-version:
+    required: false
+    description: Version of Swift (used by setup-swift)
+    default: "5"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Swift
+      uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ inputs.swift-version }}
+
+    - name: Install SwiftLint
+      shell: bash
+      run: brew install swiftlint
+
+    - name: Run SwiftLint
+      shell: bash
+      run: |
+        swiftlint --strict --config .swiftlint.yml
