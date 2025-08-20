@@ -1,0 +1,48 @@
+name: 'Test Swift project'
+description: 'Runs unit tests for a Swift project using xcodebuild'
+
+inputs:
+  scheme:
+    required: true
+    type: string
+  workspace:
+    required: true
+    type: string
+  destination:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Get XCode version
+      shell: bash
+      run: |
+        xcodebuild -version
+      
+    - name: Install Xcode 16.4
+      shell: bash
+      run: sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer
+
+    - name: Get XCode version
+      shell: bash
+      run: |
+        xcodebuild -version
+
+    - name: Show available simulators
+      shell: bash
+      run: |
+        xcrun simctl list devices
+
+    - name: Build and run unit tests
+      shell: bash
+      run: |
+        xcodebuild \
+          test \
+          -downloadPlatform iOS
+          -workspace ${{ inputs.workspace }} \
+          -scheme ${{ inputs.scheme }} \
+          -destination '${{ inputs.destination }}'
