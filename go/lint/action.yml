@@ -5,7 +5,6 @@ inputs:
     required: false
     description: Version of go
     default: "1.25.3"
-  
   golangci-lint-version:
     required: false
     description: Version of golangci-lint
@@ -28,9 +27,9 @@ runs:
         go-version: ${{ inputs.go-version }}
 
     - name: Run linters
-      # golangci-lint-action: v6.1.0 (commit of tag used instead of tag to avoid tag overwrite)
-      uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86
+      uses: golangci/golangci-lint-action@v6
       with:
         version: ${{ inputs.golangci-lint-version }}
+        install-mode: goinstall # often the binary is built with older Go version, so we need to build it ourselves
         # Extended timeout to ensure all the linters are installed before it hits
         args: --concurrency ${{ inputs.golangci-lint-concurrency }} --exclude-use-default=false --timeout=${{ inputs.golangci-lint-timeout }} -c ${{ github.action_path }}/.golangci.yml
