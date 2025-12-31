@@ -50,5 +50,6 @@ issues:
   exclude-use-default: false
   exclude-dirs:
     - vendor
+    - fixtures
   exclude-files:
     - ".*_test\\.go"
