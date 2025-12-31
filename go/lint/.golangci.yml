@@ -48,3 +48,7 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   exclude-use-default: false
+  exclude-dirs:
+    - vendor
+  exclude-files:
+    - ".*_test\\.go"
