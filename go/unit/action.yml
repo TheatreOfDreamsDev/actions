@@ -1,0 +1,23 @@
+name: 'Run Go tests'
+description: 'Setup Go and runs tests'
+inputs:
+  go-version:
+    required: false
+    description: Version of Go to use
+    default: "1.25.3"
+  test-flags:
+    required: false
+    description: Flags to pass to "go test"
+    default: "-v -race ./..."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.go-version }}
+
+    - name: Run Go tests
+      shell: bash
+      run: go test ${{ inputs.test-flags }}
