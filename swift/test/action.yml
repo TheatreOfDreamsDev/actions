@@ -40,9 +40,8 @@ runs:
     - name: Build and run unit tests
       shell: bash
       run: |
-        xcodebuild \
-          test \
-          -downloadPlatform iOS
-          -workspace ${{ inputs.workspace }} \
-          -scheme ${{ inputs.scheme }} \
-          -destination '${{ inputs.destination }}'
+        xcodebuild test \
+          -downloadPlatform iOS \
+          -workspace "${{ inputs.workspace }}" \
+          -scheme "${{ inputs.scheme }}" \
+          -destination "${{ inputs.destination }}"
