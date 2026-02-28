@@ -2,6 +2,10 @@ name: 'Test Swift project'
 description: 'Runs unit tests for a Swift project using xcodebuild'
 
 inputs:
+  xcode-version:
+    required: false
+    type: string
+    default: '16.4'
   scheme:
     required: true
     type: string
@@ -17,30 +21,16 @@ runs:
   steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Get XCode version
-      shell: bash
-      run: |
-        xcodebuild -version
       
-    - name: Install Xcode 16.4
+    - name: Select Xcode
       shell: bash
-      run: sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer
-
-    - name: Get XCode version
-      shell: bash
-      run: |
-        xcodebuild -version
-
-    - name: Show available simulators
-      shell: bash
-      run: |
-        xcrun simctl list devices
+      run: sudo xcode-select --switch /Applications/Xcode_${{ inputs.xcode-version }}.app/Contents/Developer
 
     - name: Build and run unit tests
       shell: bash
       run: |
         xcodebuild test \
+          -verbose \
           -downloadPlatform iOS \
           -workspace "${{ inputs.workspace }}" \
           -scheme "${{ inputs.scheme }}" \
