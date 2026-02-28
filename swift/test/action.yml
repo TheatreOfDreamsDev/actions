@@ -2,10 +2,16 @@ name: 'Test Swift project'
 description: 'Runs unit tests for a Swift project using xcodebuild'
 
 inputs:
-  xcode-version:
+  target-version:
+    description: 'Unified target version used for Xcode app and simulator OS (e.g. 26.2)'
     required: false
     type: string
-    default: '16.4'
+    default: '26.2'
+  device:
+    description: 'Simulator device name when destination is not provided'
+    required: false
+    type: string
+    default: 'iPhone 17'
   scheme:
     required: true
     type: string
@@ -13,7 +19,8 @@ inputs:
     required: true
     type: string
   destination:
-    required: true
+    description: 'Full xcodebuild destination override (optional)'
+    required: false
     type: string
 
 runs:
@@ -21,10 +28,35 @@ runs:
   steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
+    - name: Resolve test target
+      shell: bash
+      run: |
+        resolved_destination="${{ inputs.destination }}"
+        if [[ -z "$resolved_destination" ]]; then
+          resolved_destination="platform=iOS Simulator,name=${{ inputs.device }},OS=${{ inputs.target-version }}"
+        fi
+
+        echo "RESOLVED_DESTINATION=$resolved_destination" >> "$GITHUB_ENV"
+
+        echo "Using Xcode: ${{ inputs.target-version }}"
+        echo "Using destination: $resolved_destination"
+
+    - name: Validate selected Xcode
+      shell: bash
+      run: |
+        xcode_path="/Applications/Xcode_${{ inputs.target-version }}.app/Contents/Developer"
+        if [[ ! -d "$xcode_path" ]]; then
+          echo "::error::Xcode not found at $xcode_path"
+          echo "::error::Set inputs.target-version to an installed Xcode version on the runner."
+          echo "::error::Available /Applications entries:"
+          ls -1 /Applications || true
+          exit 1
+        fi
+
     - name: Select Xcode
       shell: bash
-      run: sudo xcode-select --switch /Applications/Xcode_${{ inputs.xcode-version }}.app/Contents/Developer
+      run: sudo xcode-select --switch /Applications/Xcode_${{ inputs.target-version }}.app/Contents/Developer
 
     - name: Build and run unit tests
       shell: bash
@@ -34,4 +66,4 @@ runs:
           -downloadPlatform iOS \
           -workspace "${{ inputs.workspace }}" \
           -scheme "${{ inputs.scheme }}" \
-          -destination "${{ inputs.destination }}"
+          -destination "${RESOLVED_DESTINATION}"
