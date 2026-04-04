@@ -3,7 +3,12 @@ description: 'Runs unit tests for a Swift project using xcodebuild'
 
 inputs:
   target-version:
-    description: 'Unified target version used for Xcode app and simulator OS (e.g. 26.2)'
+    description: 'Xcode app version suffix (e.g. 26.2)'
+    required: false
+    type: string
+    default: '26.2'
+  simulator-os:
+    description: 'Simulator OS version when destination is not provided (defaults to iOS 26.2)'
     required: false
     type: string
     default: '26.2'
@@ -34,7 +39,7 @@ runs:
       run: |
         resolved_destination="${{ inputs.destination }}"
         if [[ -z "$resolved_destination" ]]; then
-          resolved_destination="platform=iOS Simulator,name=${{ inputs.device }},OS=${{ inputs.target-version }}"
+          resolved_destination="platform=iOS Simulator,name=${{ inputs.device }},OS=${{ inputs.simulator-os }}"
         elif [[ "$resolved_destination" != *"platform="* ]]; then
           # If the caller provides only name/OS, force simulator platform to avoid
           # xcodebuild trying to target a non-simulator destination in CI.
@@ -44,6 +49,7 @@ runs:
         echo "RESOLVED_DESTINATION=$resolved_destination" >> "$GITHUB_ENV"
 
         echo "Using Xcode: ${{ inputs.target-version }}"
+        echo "Using simulator OS: ${{ inputs.simulator-os }}"
         echo "Using destination: $resolved_destination"
 
     - name: Validate selected Xcode
@@ -62,12 +68,36 @@ runs:
       shell: bash
       run: sudo xcode-select --switch /Applications/Xcode_${{ inputs.target-version }}.app/Contents/Developer
 
+    - name: Validate iOS 26 simulator runtime
+      shell: bash
+      run: |
+        runtimes="$(xcrun simctl list runtimes || true)"
+        if [[ "$runtimes" != *"iOS 26"* ]]; then
+          echo "::error::No iOS 26 simulator runtime is available on this runner image."
+          echo "::error::Use a macOS image that includes iOS 26 simulator runtimes."
+          echo "::error::Available simulator runtimes:"
+          echo "$runtimes"
+          exit 1
+        fi
+
+    - name: Install CocoaPods dependencies
+      shell: bash
+      run: |
+        if [[ -f "Podfile" ]]; then
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods is required but 'pod' command was not found."
+            exit 1
+          fi
+          pod install
+        else
+          echo "No Podfile found. Skipping pod install."
+        fi
+
     - name: Build and run unit tests
       shell: bash
       run: |
         xcodebuild test \
           -verbose \
-          -downloadPlatform iOS \
           -workspace "${{ inputs.workspace }}" \
           -scheme "${{ inputs.scheme }}" \
           -destination-timeout 180 \
