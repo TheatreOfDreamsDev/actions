@@ -35,6 +35,10 @@ runs:
         resolved_destination="${{ inputs.destination }}"
         if [[ -z "$resolved_destination" ]]; then
           resolved_destination="platform=iOS Simulator,name=${{ inputs.device }},OS=${{ inputs.target-version }}"
+        elif [[ "$resolved_destination" != *"platform="* ]]; then
+          # If the caller provides only name/OS, force simulator platform to avoid
+          # xcodebuild trying to target a non-simulator destination in CI.
+          resolved_destination="platform=iOS Simulator,${resolved_destination}"
         fi
 
         echo "RESOLVED_DESTINATION=$resolved_destination" >> "$GITHUB_ENV"
@@ -66,4 +70,5 @@ runs:
           -downloadPlatform iOS \
           -workspace "${{ inputs.workspace }}" \
           -scheme "${{ inputs.scheme }}" \
+          -destination-timeout 180 \
           -destination "${RESOLVED_DESTINATION}"
