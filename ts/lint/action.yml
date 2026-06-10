@@ -1,5 +1,5 @@
-name: 'Run unit tests'
-description: 'Runs unit tests for TypeScript projects using Vitest'
+name: 'Lint TypeScript project'
+description: 'Installs dependencies and runs npm linters for TypeScript projects'
 
 runs:
   using: 'composite'
@@ -14,6 +14,6 @@ runs:
       run: npm ci
       shell: bash
 
-    - name: Run Vitest tests
-      run: npx vitest run
+    - name: Run linters
+      run: npm run lint
       shell: bash
