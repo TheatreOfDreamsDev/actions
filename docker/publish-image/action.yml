@@ -29,7 +29,7 @@ inputs:
   platforms:
     required: false
     description: 'Comma-separated target platforms'
-    default: 'linux/amd64,linux/arm64'
+    default: 'linux/amd64'
   provenance:
     required: false
     description: 'Whether to generate provenance attestations'
@@ -64,6 +64,13 @@ runs:
       fi
 
       echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+
+  - name: Set up QEMU
+    # QEMU is only needed for cross-arch builds (anything non-native to the
+    # hosted runner — currently amd64). Skipping the install when we only
+    # build amd64 trims ~30s off the run.
+    if: contains(inputs.platforms, 'arm') || contains(inputs.platforms, 'ppc') || contains(inputs.platforms, 's390') || contains(inputs.platforms, 'riscv')
+    uses: docker/setup-qemu-action@v3
 
   - name: Set up Docker Buildx
     uses: docker/setup-buildx-action@v3
