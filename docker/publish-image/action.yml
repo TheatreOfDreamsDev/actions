@@ -34,6 +34,10 @@ inputs:
     required: false
     description: 'Whether to generate provenance attestations'
     default: 'false'
+  build-args:
+    required: false
+    description: 'Newline-separated Docker build arguments'
+    default: ''
 
 outputs:
   tag:
@@ -90,5 +94,6 @@ runs:
       push: true
       platforms: ${{ inputs.platforms }}
       provenance: ${{ inputs.provenance }}
+      build-args: ${{ inputs.build-args }}
       tags: |
         ${{ inputs.image-name }}:${{ steps.image.outputs.tag }}
